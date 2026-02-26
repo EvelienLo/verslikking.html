@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Verslikking - Oefentool</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f6f8;
+        text-align: center;
+        padding: 30px;
+    }
+    h1 {
+        color: #2c3e50;
+    }
+    #instructions {
+        margin-bottom: 20px;
+        font-size: 18px;
+    }
+    .container {
+        width: 400px;
+        margin: auto;
+    }
+    .item {
+        background-color: #6f8fa6;
+        color: white;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        cursor: grab;
+    }
+    .item.dragging {
+        opacity: 0.5;
+    }
+    button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #2c3e50;
+        color: white;
+    }
+    #result {
+        margin-top: 20px;
+        font-weight: bold;
+        font-size: 18px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Verslikking - Wat doe je?</h1>
+<div id="instructions">
+Situatie: <strong>Meneer De Haes verslikt zich en kan niet meer slikken.</strong><br>
+Zet de stappen in de juiste volgorde.
+</div>
+
+<div class="container" id="list">
+    <div class="item" draggable="true">Geef 5 rugslagen</div>
+    <div class="item" draggable="true">Bel 112 indien nodig</div>
+    <div class="item" draggable="true">Pas buikstoten (Heimlichgreep) toe indien nodig</div>
+    <div class="item" draggable="true">Laat hem proberen te hoesten</div>
+    <div class="item" draggable="true">Controleer ademhaling</div>
+</div>
+
+<button onclick="checkOrder()">Controleer</button>
+
+<div id="result"></div>
+
+<script>
+const list = document.getElementById('list');
+let draggedItem = null;
+
+list.addEventListener('dragstart', function(e) {
+    draggedItem = e.target;
+    e.target.classList.add('dragging');
+});
+
+list.addEventListener('dragend', function(e) {
+    e.target.classList.remove('dragging');
+});
+
+list.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    const afterElement = getDragAfterElement(list, e.clientY);
+    if (afterElement == null) {
+        list.appendChild(draggedItem);
+    } else {
+        list.insertBefore(draggedItem, afterElement);
+    }
+});
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.item:not(.dragging)')];
+
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function checkOrder() {
+    const correctOrder = [
+        "Laat hem proberen te hoesten",
+        "Geef 5 rugslagen",
+        "Pas buikstoten (Heimlichgreep) toe indien nodig",
+        "Bel 112 indien nodig",
+        "Controleer ademhaling"
+    ];
+
+    const items = document.querySelectorAll('.item');
+    let userOrder = [];
+    items.forEach(item => userOrder.push(item.textContent));
+
+    const result = document.getElementById('result');
+
+    if (JSON.stringify(userOrder) === JSON.stringify(correctOrder)) {
+        result.style.color = 'green';
+        result.textContent = '✅ Juist! Goed gedaan.';
+    } else {
+        result.style.color = 'red';
+        result.textContent = '❌ Fout. Probeer opnieuw.';
+    }
+}
+</script>
+
+</body>
+</html>
